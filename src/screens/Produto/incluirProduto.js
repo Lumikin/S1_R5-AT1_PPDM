@@ -24,8 +24,8 @@ export default function ProdutoScreenIncluir() {
   const [categoriaId, setCategoriaId] = useState(null); // Categoria selecionada
 
   // Instâncias dos repositórios
-  const produtoRep = new ProdutoRepository();
-  const categoriaRep = new CategoriaRepository();
+  // const produtoRep = new ProdutoRepository();
+  // const categoriaRep = new CategoriaRepository();
 
   // Executa ao montar a tela
   useEffect(() => {

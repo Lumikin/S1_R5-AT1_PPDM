@@ -18,7 +18,7 @@ export default function ProdutoScreen() {
   const navigation = useNavigation();
 
   // Instância do repositório de produtos
-  const produtoRep = new ProdutoRepository();
+  // const produtoRep = new ProdutoRepository();
 
   // Estado que armazena a lista de produtos
   const [produtos, setProdutos] = useState([]);
