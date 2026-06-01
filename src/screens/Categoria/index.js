@@ -78,14 +78,10 @@ export default function CategoriaScreen() {
             }
 
             // Executa exclusão
-            // await categoriaRep.delete(id);
+            await api.delete(`/categorias/${id}`);
 
             // Atualiza lista após exclusão
             await loadData();
-
-            // Debug: mostra lista atualizada
-            const lista = await categoriaRep.findAll();
-            console.log(lista);
           } catch (error) {
             // Tratamento de erro específico de chave estrangeira
             if (error?.message?.includes("FOREIGN KEY constraint failed")) {
@@ -159,9 +155,7 @@ export default function CategoriaScreen() {
                 <View style={styles.cardContent}>
                   {/* Exibição dos dados da categoria */}
                   <Text style={styles.title}>ID: {item.id}</Text>
-                  <Text style={styles.title}>
-                    Categoria: {item.Nome}
-                  </Text>
+                  <Text style={styles.title}>Categoria: {item.Nome}</Text>
                 </View>
               </View>
 
@@ -178,7 +172,7 @@ export default function CategoriaScreen() {
                 {/* Botão de excluir */}
                 <TouchableOpacity
                   style={[styles.iconButton, { backgroundColor: "#FFEBEE" }]}
-                  onPress={() => deletarCategoria(item.Id)}
+                  onPress={() => deletarCategoria(item.id)}
                 >
                   <Text style={styles.iconText}>🗑️ Excluir</Text>
                 </TouchableOpacity>
