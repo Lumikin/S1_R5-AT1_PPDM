@@ -1,15 +1,22 @@
 // Importa a barra de status do Expo
-import { StatusBar } from 'expo-status-bar';
+import { StatusBar } from "expo-status-bar";
 
 // Hooks do React para estado, efeitos e otimização de funções
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 // Componentes visuais do React Native
-import { StyleSheet, Text, View, TouchableOpacity, FlatList, Alert } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+} from "react-native";
 
 // Navegação entre telas
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import api from "../../api/api";
 
 export default function CategoriaScreen() {
   // Hook para navegação entre telas
@@ -21,13 +28,11 @@ export default function CategoriaScreen() {
   // Executa uma vez ao montar o componente
   useEffect(() => {
     try {
-      const setup = async () => {
-
-      }
+      const setup = async () => {};
       setup();
     } catch (error) {
       console.log(error);
-      Alert.alert('Ocorreu um erro');
+      Alert.alert("Ocorreu um erro");
     }
   }, []);
 
@@ -38,66 +43,63 @@ export default function CategoriaScreen() {
         await loadData(); // Recarrega os dados ao voltar para a tela
       }
       load();
-    }, [])
+    }, []),
   );
 
   // Função para buscar todas as categorias
   async function loadData() {
     try {
-      // const data = await categoriaRep.findAll();
-      setCategorias(data); // Atualiza o estado com os dados
+      const response = await api.get("/categorias");
+      console.log(response.data.result);
+      setCategorias(response.data.result); // Atualiza o estado com os dados
     } catch (error) {
       console.log(error);
-      Alert.alert('Ocorreu um erro', error.message);
+      Alert.alert("Ocorreu um erro", error.message);
     }
-
   }
 
   // Função para deletar uma categoria
   async function deletarCategoria(id) {
     // Exibe alerta de confirmação
-    Alert.alert('Confirmação', 'Deseja realmente excluir esta categoria?',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel'
-        },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // Validação básica do ID
-              if (!id || id <= 0) {
-                Alert.alert('Atencão', 'ID da categoria é inválido');
-                return
-              }
+    Alert.alert("Confirmação", "Deseja realmente excluir esta categoria?", [
+      {
+        text: "Cancelar",
+        style: "cancel",
+      },
+      {
+        text: "Excluir",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            // Validação básica do ID
+            if (!id || id <= 0) {
+              Alert.alert("Atencão", "ID da categoria é inválido");
+              return;
+            }
 
-              // Executa exclusão
-              // await categoriaRep.delete(id);
+            // Executa exclusão
+            // await categoriaRep.delete(id);
 
-              // Atualiza lista após exclusão
-              await loadData();
+            // Atualiza lista após exclusão
+            await loadData();
 
-              // Debug: mostra lista atualizada
-              const lista = await categoriaRep.findAll();
-              console.log(lista);
-
-            } catch (error) {
-              // Tratamento de erro específico de chave estrangeira
-              if (error?.message?.includes('FOREIGN KEY constraint failed')) {
-                Alert.alert(
-                  "Exclusão bloqueada",
-                  "Essa categoria possui produtos vinculados."
-                );
-              } else {
-                Alert.alert("Erro", "Não foi possível excluir a categoria.");
-              }
+            // Debug: mostra lista atualizada
+            const lista = await categoriaRep.findAll();
+            console.log(lista);
+          } catch (error) {
+            // Tratamento de erro específico de chave estrangeira
+            if (error?.message?.includes("FOREIGN KEY constraint failed")) {
+              Alert.alert(
+                "Exclusão bloqueada",
+                "Essa categoria possui produtos vinculados.",
+              );
+            } else {
+              Alert.alert("Erro", "Não foi possível excluir a categoria.");
             }
           }
-        }
-      ]
-    )
+        },
+      },
+    ]);
   }
 
   // Função para editar uma categoria
@@ -105,19 +107,18 @@ export default function CategoriaScreen() {
     try {
       // Validação se item foi selecionado
       if (!item) {
-        Alert.alert('Atencão', 'Selecione uma categoria para editar');
-        return
+        Alert.alert("Atencão", "Selecione uma categoria para editar");
+        return;
       }
 
       // Navega para tela de edição passando o item
-      navigation.navigate('CategoriaScreenEditar', item)
-
+      navigation.navigate("CategoriaScreenEditar", item);
     } catch (error) {
       // Tratamento de erro (mensagem reaproveitada)
-      if (error?.message?.includes('FOREIGN KEY constraint failed')) {
+      if (error?.message?.includes("FOREIGN KEY constraint failed")) {
         Alert.alert(
           "Exclusão bloqueada",
-          "Essa categoria possui produtos vinculados."
+          "Essa categoria possui produtos vinculados.",
         );
       } else {
         Alert.alert("Erro", "Não foi possível excluir a categoria.");
@@ -135,7 +136,10 @@ export default function CategoriaScreen() {
         <Text style={styles.titleScreen}>Gestão de categorias</Text>
 
         {/* Botão para navegar para tela de inclusão */}
-        <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('CategoriaScreenIncluir')}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate("CategoriaScreenIncluir")}
+        >
           <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
       </View>
@@ -143,28 +147,26 @@ export default function CategoriaScreen() {
       {/* Lista de categorias */}
       <FlatList
         data={categorias}
-        keyExtractor={(item) => String(item.Id)} // Define chave única
+        keyExtractor={item => String(item.id)} // Define chave única
         contentContainerStyle={{ paddingBottom: 20 }}
         renderItem={({ item }) => (
-
           <View style={styles.card}>
-
             {/* Barra lateral decorativa */}
             <View style={styles.sideBar} />
 
             <View style={styles.conteudo}>
-
               <View style={styles.cardInner}>
                 <View style={styles.cardContent}>
                   {/* Exibição dos dados da categoria */}
-                  <Text style={styles.title}>ID: {item.Id}</Text>
-                  <Text style={styles.title}>Categoria: {item.NomeCategoria}</Text>
+                  <Text style={styles.title}>ID: {item.id}</Text>
+                  <Text style={styles.title}>
+                    Categoria: {item.Nome}
+                  </Text>
                 </View>
               </View>
 
               {/* Botões de ação */}
               <View style={styles.actions}>
-
                 {/* Botão de editar */}
                 <TouchableOpacity
                   style={[styles.iconButton, { backgroundColor: "#E3F2FD" }]}
@@ -193,7 +195,7 @@ export default function CategoriaScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
 
   // Barra lateral laranja decorativa
@@ -205,7 +207,7 @@ const styles = StyleSheet.create({
   conteudo: {
     flex: 1,
     padding: 5,
-    flexDirection: 'column',
+    flexDirection: "column",
   },
 
   cardInner: {
@@ -244,13 +246,13 @@ const styles = StyleSheet.create({
 
   // Card de cada item da lista
   card: {
-    flexDirection: 'row',
-    width: '95%',
+    flexDirection: "row",
+    width: "95%",
     backgroundColor: "#ffffff",
     borderRadius: 6,
     marginTop: 12,
     marginHorizontal: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
 
     // Sombra iOS
     shadowColor: "#000",
@@ -282,10 +284,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     justifyContent: "center",
     alignItems: "center",
-    marginEnd: 5
+    marginEnd: 5,
   },
 
   iconText: {
     fontWeight: "600",
-  }
+  },
 });
