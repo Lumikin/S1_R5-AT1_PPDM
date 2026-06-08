@@ -134,8 +134,8 @@ export default function ProdutoScreen() {
       navigation.navigate("ProdutoScreenEditar", {
         id: item.id,
         nome: item.nome,
-        nome: item.valor,
-        nome: item.idCategorias,
+        valor: item.valor,
+        idCategoria: item.idCategorias,
       });
     } catch (error) {
       // Tratamento de erro (mensagem reaproveitada)
@@ -193,7 +193,7 @@ export default function ProdutoScreen() {
                 {/* Botão de editar */}
                 <TouchableOpacity
                   style={[styles.iconButton]}
-                  onPress={() => openEdit(item)} // Função não definida neste trecho
+                  onPress={() => editarProduto(item)} // Função não definida neste trecho
                 >
                   <Text style={styles.iconText}>✏️ Editar</Text>
                 </TouchableOpacity>

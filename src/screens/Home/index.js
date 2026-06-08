@@ -1,6 +1,6 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StatusBar } from "expo-status-bar";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -9,15 +9,20 @@ export default function HomeScreen() {
       <StatusBar style="auto" />
 
       {/* Botão para navegar para página de categorias */}
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('CategoriaScreen')}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate("CategoriaScreen")}
+      >
         <Text style={styles.text}>Categorias</Text>
       </TouchableOpacity>
 
       {/* Botão para navegar para página de produtos */}
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ProdutoScreen')}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate("ProdutoScreen")}
+      >
         <Text style={styles.text}>Produtos</Text>
       </TouchableOpacity>
-
     </View>
   );
 }
@@ -25,9 +30,9 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
   button: {
     backgroundColor: "#4CAF50",
@@ -36,8 +41,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    width: '95%',
-    marginBottom: 10
+    width: "95%",
+    marginBottom: 10,
   },
   text: {
     color: "#fff",

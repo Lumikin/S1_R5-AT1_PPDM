@@ -2,10 +2,10 @@
 import { StatusBar } from "expo-status-bar";
 import * as ImagePicker from "expo-image-picker";
 // Hook para navegação entre telas
-import { useNavigation } from "@react-navigation/native";
 import api from "../../api/api";
 // Hooks de estado e ciclo de vida
 import { useState, useEffect } from "react";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 // Componentes de interface do React Native
 import {
@@ -23,7 +23,7 @@ import { Picker } from "@react-native-picker/picker";
 export default function ProdutoScreenEditar() {
   // Hook de navegação
   const navigation = useNavigation();
-
+  const route = useRoute();
   // Estados do formulário
   const [nomeProduto, setNomeProduto] = useState(); // Nome do produto
   const [idProduto, setIdProduto] = useState(); // Nome do produto
@@ -35,10 +35,11 @@ export default function ProdutoScreenEditar() {
     if (route.params) {
       setIdProduto(route.params.id);
       setNomeProduto(route.params.nome);
-      setValorProduto(route.params.descricao);
-      setCategorias(route.params.descricao);
+      setValorProduto(route.params.valor);
+      setCategoriaId(route.params.idCategoria);
     }
   }, [route.params]);
+
   async function loadDataCategorias() {
     try {
       const response = await api.get("/categorias");
@@ -49,24 +50,6 @@ export default function ProdutoScreenEditar() {
       Alert.alert("Ocorreu um erro", error.message);
     }
   }
-  // Instâncias dos repositórios
-  // const produtoRep = new ProdutoRepository();
-  // const categoriaRep = new CategoriaRepository();
-
-  // Executa ao montar a tela
-
-  // Abre a Galeria buscando apenas imagens
-  const selecionarImagem = async () => {
-    const imagem = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-    if (!imagem.canceled) {
-      setImage(imagem.assets[0]); // Deixa a imagem nula
-    }
-  };
 
   useEffect(() => {
     try {
@@ -104,27 +87,18 @@ export default function ProdutoScreenEditar() {
       Alert.alert("Atenção", "Informe um valor");
       return;
     }
-    if (!image) {
-      Alert.alert("Atenção", "Selecione uma imagem");
-      return;
-    }
-    // Formdata da imagem
-    formData.append("image", {
-      uri: image.uri,
-      name: image.uri.split("/").pop(),
-      type: "image/png",
-    });
-
-    formData.append("nome", nomeProduto);
-    formData.append("idCategoria", categoriaId);
-    formData.append("valor", valorProduto);
-
     try {
-      await api.post("/produtos", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
+      const body = {
+        nome: nomeProduto,
+        valor: valorProduto,
+        idCategoria: categoriaId,
+      };
+      const params = {
+        params: {
+          id: idProduto,
         },
-      });
+      };
+      await api.put("/produtos", body, params);
       navigation.goBack();
     } catch (error) {
       console.log(error);
@@ -164,11 +138,6 @@ export default function ProdutoScreenEditar() {
           setValorProduto(cleaned);
         }}
       />
-      {/* Botão de inserir imagem */}
-      <TouchableOpacity style={styles.button} onPress={selecionarImagem}>
-        <Text>Imagem</Text>
-      </TouchableOpacity>
-
       {/* Container do seletor de categoria */}
       <View style={styles.pickerContainer}>
         <Picker
