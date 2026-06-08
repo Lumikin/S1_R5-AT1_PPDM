@@ -109,7 +109,7 @@ export default function ProdutoScreenEditar() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Incluir Produto</Text>
+      <Text style={styles.titulo}>Alterar Produto</Text>
       <StatusBar style="auto" />
 
       {/* Campo para nome do produto */}
