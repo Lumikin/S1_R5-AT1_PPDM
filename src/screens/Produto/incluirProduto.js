@@ -155,9 +155,6 @@ export default function ProdutoScreenIncluir() {
           setValorProduto(cleaned);
         }}
       />
-      <TouchableOpacity style={styles.button} onPress={selecionarImagem}>
-        <Text>Imagem</Text>
-      </TouchableOpacity>
       {/* Container do seletor de categoria */}
       <View style={styles.pickerContainer}>
         <Picker
@@ -173,7 +170,12 @@ export default function ProdutoScreenIncluir() {
             <Picker.Item key={cat.id} label={cat.Nome} value={cat.id} />
           ))}
         </Picker>
+        {/* Botão de inserir imagem */}
       </View>
+      {/* Botão de inserir imagem */}
+      <TouchableOpacity style={styles.imageButton} onPress={selecionarImagem}>
+        <Text style={styles.imageButtonText}>Imagem</Text>
+      </TouchableOpacity>
       {/* Botão de cancelar */}
       <TouchableOpacity
         style={[styles.button, styles.cancelButton]}
@@ -210,21 +212,18 @@ const styles = StyleSheet.create({
   },
   imageButton: {
     width: "95%",
-    height: 80,
-    borderWidth: 2,
-    borderColor: "#4CAF50",
-    borderStyle: "dashed",
+    height: 50,
+    borderWidth: 1,
+    borderColor: "#ddd",
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
-    backgroundColor: "#F8FFF8",
   },
 
   imageButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#4CAF50",
   },
   // Estilo dos inputs
   input: {

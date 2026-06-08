@@ -30,14 +30,23 @@ export default function ProdutoScreen() {
   // const produtoRep = new ProdutoRepository();
 
   // Estado que armazena a lista de produtos
+  const [categorias, setCategorias] = useState([]);
   const [produtos, setProdutos] = useState([]);
 
+  async function loadCategorias() {
+    try {
+      const response = await api.get("/categorias");
+      setCategorias(response.data.result);
+    } catch (error) {
+      console.log(error);
+    }
+  }
   // Executa ao montar o componente (uma única vez)
   useEffect(() => {
     try {
       const setup = async () => {
-        // Carrega os dados iniciais
         await loadData();
+        await loadCategorias();
       };
       setup();
     } catch (error) {
@@ -55,6 +64,15 @@ export default function ProdutoScreen() {
       load();
     }, []),
   );
+  function NomeCategoria(id) {
+    const categoria = categorias.find(cat => cat.id === id);
+    if (categoria) {
+      return categoria.Nome;
+    } else {
+      return "Não encontrada";
+    }
+  }
+
   async function deletarCategoria(id) {
     // Exibe alerta de confirmação
     Alert.alert("Confirmação", "Deseja realmente excluir este produto?", [
@@ -104,7 +122,33 @@ export default function ProdutoScreen() {
       Alert.alert("Ocorreu um erro", error.message);
     }
   }
+  async function editarProduto(item) {
+    try {
+      // Validação se item foi selecionado
+      if (!item) {
+        Alert.alert("Atencão", "Selecione uma categoria para editar");
+        return;
+      }
 
+      // Navega para tela de edição passando o item
+      navigation.navigate("ProdutoScreenEditar", {
+        id: item.id,
+        nome: item.nome,
+        nome: item.valor,
+        nome: item.idCategorias,
+      });
+    } catch (error) {
+      // Tratamento de erro (mensagem reaproveitada)
+      if (error?.message?.includes("FOREIGN KEY constraint failed")) {
+        Alert.alert(
+          "Exclusão bloqueada",
+          "Essa categoria possui produtos vinculados.",
+        );
+      } else {
+        Alert.alert("Erro", "Não foi possível excluir a categoria.");
+      }
+    }
+  }
   // Renderização da tela
   return (
     <View style={styles.container}>
@@ -126,7 +170,7 @@ export default function ProdutoScreen() {
       {/* Lista de produtos */}
       <FlatList
         data={produtos}
-        keyExtractor={item => String(item.Id)} // Define chave única
+        keyExtractor={item => String(item.id)} // Define chave única
         contentContainerStyle={{ paddingBottom: 20 }}
         renderItem={({ item }) => (
           <View style={styles.card}>
@@ -140,7 +184,7 @@ export default function ProdutoScreen() {
                 <Text style={styles.title}>Produto: {item.nome}</Text>
                 <Text style={styles.title}>Valor R$: {item.valor}</Text>
                 <Text style={styles.title}>
-                  Categoria: {item.NomeCategoria}
+                  Categoria: {NomeCategoria(item.idCategorias)}
                 </Text>
               </View>
 

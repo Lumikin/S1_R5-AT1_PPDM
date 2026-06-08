@@ -1,100 +1,205 @@
-import { StatusBar } from 'expo-status-bar';
+// Importa a barra de status do Expo
+import { StatusBar } from "expo-status-bar";
+import * as ImagePicker from "expo-image-picker";
 // Hook para navegação entre telas
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
+import api from "../../api/api";
 // Hooks de estado e ciclo de vida
-import { useState, useEffect } from 'react';
-// Componentes básicos do React Native
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { useState, useEffect } from "react";
 
+// Componentes de interface do React Native
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 
+// Componente de seleção (dropdown)
+import { Picker } from "@react-native-picker/picker";
 
 export default function ProdutoScreenEditar() {
-  // Hook para acessar os parâmetros recebidos pela navegação
-  const route = useRoute();
-
-  // Hook para controlar navegação (voltar, ir para outra tela, etc)
+  // Hook de navegação
   const navigation = useNavigation();
 
-  // Estado para armazenar o nome da categoria
-  const [nomeProduto, setNomeProduto] = useState(null);
-  // Estado para armazenar o ID da categoria
-  const [idCategoria, setIdCategoria] = useState(null);
-  
-  useEffect(() => {    
-    // Quando a tela recebe parâmetros, preenche os estados
+  // Estados do formulário
+  const [nomeProduto, setNomeProduto] = useState(); // Nome do produto
+  const [idProduto, setIdProduto] = useState(); // Nome do produto
+  const [valorProduto, setValorProduto] = useState(); // Valor do produto
+  const [categorias, setCategorias] = useState([]); // Lista de categorias
+  const [categoriaId, setCategoriaId] = useState(null); // Categoria selecionada
+  const [image, setImage] = useState(null);
+  useEffect(() => {
     if (route.params) {
-      setIdCategoria(route.params.Id) // recebe ID
-      setNomeCategoria(route.params.NomeCategoria); // recebe nome
+      setIdProduto(route.params.id);
+      setNomeProduto(route.params.nome);
+      setValorProduto(route.params.descricao);
+      setCategorias(route.params.descricao);
     }
-  }, [route.params]); // executa sempre que os parâmetros mudarem
+  }, [route.params]);
+  async function loadDataCategorias() {
+    try {
+      const response = await api.get("/categorias");
+      console.log(response.data.result);
+      return response.data.result; // Atualiza o estado com os dados
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Ocorreu um erro", error.message);
+    }
+  }
+  // Instâncias dos repositórios
+  // const produtoRep = new ProdutoRepository();
+  // const categoriaRep = new CategoriaRepository();
 
-  // Função para salvar (editar) a categoria
+  // Executa ao montar a tela
+
+  // Abre a Galeria buscando apenas imagens
+  const selecionarImagem = async () => {
+    const imagem = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+    if (!imagem.canceled) {
+      setImage(imagem.assets[0]); // Deixa a imagem nula
+    }
+  };
+
+  useEffect(() => {
+    try {
+      const setup = async () => {
+        // Busca todas as categorias do banco
+        const result = await loadDataCategorias();
+
+        // Armazena no estado
+        setCategorias(result);
+      };
+      setup();
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Ocorreu um erro");
+    }
+  }, []);
+
+  // Função responsável por salvar o produto
   async function salvar() {
+    const formData = new FormData();
     // Validação do nome
-    if (!nomeCategoria || nomeCategoria.trim().length < 3) {
-      Alert.alert('Atencão', 'Informe corretamente o nome da categoria');
-      return
+    if (!nomeProduto || nomeProduto.trim().length < 3) {
+      Alert.alert("Atencão", "Informe corretamente o nome do produto");
+      return;
     }
 
-    // Validação do ID
-    if (!idCategoria || idCategoria <= 0) {
-      Alert.alert('Atencão', 'Verifique o ID da categoria');
-      return
+    // Validação da categoria
+    if (!categoriaId) {
+      Alert.alert("Atenção", "Selecione uma categoria");
+      return;
     }
 
-    // Atualiza a categoria no banco
-    // const lista = await categoriaRep.update({ nome:nomeCategoria, id:idCategoria });
+    // Validação do valor
+    if (!valorProduto || valorProduto <= 0) {
+      Alert.alert("Atenção", "Informe um valor");
+      return;
+    }
+    if (!image) {
+      Alert.alert("Atenção", "Selecione uma imagem");
+      return;
+    }
+    // Formdata da imagem
+    formData.append("image", {
+      uri: image.uri,
+      name: image.uri.split("/").pop(),
+      type: "image/png",
+    });
 
-    // Debug: exibe retorno da atualização
-    console.log(lista);
+    formData.append("nome", nomeProduto);
+    formData.append("idCategoria", categoriaId);
+    formData.append("valor", valorProduto);
 
-    // Volta para a tela anterior após salvar
-    navigation.goBack();
+    try {
+      await api.post("/produtos", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      navigation.goBack();
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Erro", "Não foi possível cadastrar o produto");
+    }
+    // Volta para a tela anterior
   }
 
   return (
     <View style={styles.container}>
-      {/* Título da tela */}
-      <Text style={styles.titulo}>Incluir Categoria</Text>
-
-      {/* Barra de status do sistema */}
+      <Text style={styles.titulo}>Incluir Produto</Text>
       <StatusBar style="auto" />
 
-      {/* Input do ID (convertido para string para exibir corretamente) */}
+      {/* Campo para nome do produto */}
       <TextInput
-        value={idCategoria ? String(idCategoria) : ''}
-        // Converte texto digitado para número
-        onChangeText={(text) => setIdCategoria(Number(text))}
+        placeholder="Digite o nome do produto"
+        value={nomeProduto}
+        onChangeText={setNomeProduto}
         style={styles.input}
       />
 
-      {/* Input do nome da categoria */}
+      {/* Campo para valor do produto */}
       <TextInput
-        placeholder="Digite o nome da categoria"
-        value={nomeCategoria}
-        onChangeText={setNomeCategoria}
+        placeholder="Digite valor do produto"
+        value={valorProduto}
         style={styles.input}
+        keyboardType="numeric"
+        onChangeText={text => {
+          // Remove tudo que não for número ou ponto decimal
+          const cleaned = text.replace(/[^0-9.]/g, "");
+
+          // Evita mais de um ponto decimal (ex: 10.5.3)
+          const parts = cleaned.split(".");
+          if (parts.length > 2) return;
+
+          // Atualiza o estado com valor válido
+          setValorProduto(cleaned);
+        }}
       />
+      {/* Botão de inserir imagem */}
+      <TouchableOpacity style={styles.button} onPress={selecionarImagem}>
+        <Text>Imagem</Text>
+      </TouchableOpacity>
 
-      {/* Área dos botões */}
-      <View style={styles.actions}>
-        
-        {/* Botão cancelar */}
-        <TouchableOpacity
-          style={[styles.button, styles.cancelButton]}
-          onPress={() => navigation.goBack()}
+      {/* Container do seletor de categoria */}
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={categoriaId}
+          onValueChange={itemValue => setCategoriaId(itemValue)}
+          style={styles.picker}
         >
-          <Text>Cancelar</Text>
-        </TouchableOpacity>
+          {/* Opção padrão */}
+          <Picker.Item label="Selecione uma categoria" value={null} />
 
-        {/* Botão salvar */}
-        <TouchableOpacity
-          style={[styles.button, styles.saveButton]}
-          onPress={salvar}
-        >
-          <Text style={{ color: "#fff" }}>Salvar</Text>
-        </TouchableOpacity>
+          {/* Lista dinâmica de categorias */}
+          {categorias.map(cat => (
+            <Picker.Item key={cat.id} label={cat.Nome} value={cat.id} />
+          ))}
+        </Picker>
       </View>
+      {/* Botão de cancelar */}
+      <TouchableOpacity
+        style={[styles.button, styles.cancelButton]}
+        onPress={() => navigation.goBack()}
+      >
+        <Text style={styles.textButton}>Cancelar</Text>
+      </TouchableOpacity>
+
+      {/* Botão de salvar */}
+      <TouchableOpacity
+        style={[styles.button, styles.saveButton]}
+        onPress={salvar}
+      >
+        <Text style={[styles.textButton, { color: "#fff" }]}>Salvar</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -103,37 +208,86 @@ export default function ProdutoScreenEditar() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    // justifyContent: 'center',
+    backgroundColor: "#fff",
+    alignItems: "center",
   },
+
+  // Título da tela
   titulo: {
     marginTop: 25,
     marginBottom: 25,
+    fontSize: 16,
+    fontWeight: "bold",
   },
+  imageButton: {
+    width: "95%",
+    height: 80,
+    borderWidth: 2,
+    borderColor: "#4CAF50",
+    borderStyle: "dashed",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+    backgroundColor: "#F8FFF8",
+  },
+
+  imageButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#4CAF50",
+  },
+  // Estilo dos inputs
   input: {
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 10,
     padding: 10,
     marginBottom: 16,
-    width: '95%'
+    width: "95%",
+    height: 50,
   },
+
+  // Área de ações (não usada diretamente aqui)
   actions: {
-    flexDirection: "row", // botões lado a lado
-    justifyContent: "flex-end", // alinhados à direita
+    flexDirection: "row",
+    justifyContent: "flex-end",
   },
+
+  // Estilo base dos botões
   button: {
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 8,
     marginLeft: 8,
+    width: "95%",
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 10,
   },
 
+  // Botão cancelar
   cancelButton: {
-    backgroundColor: "#eee", // cinza claro
+    backgroundColor: "#eee",
   },
+
+  // Botão salvar
   saveButton: {
-    backgroundColor: "#4CAF50", // verde
+    backgroundColor: "#4CAF50",
+  },
+
+  // Container do Picker (dropdown)
+  pickerContainer: {
+    width: "95%",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+
+  // Texto dos botões
+  textButton: {
+    fontSize: 16,
   },
 });
