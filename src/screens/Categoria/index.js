@@ -108,7 +108,11 @@ export default function CategoriaScreen() {
       }
 
       // Navega para tela de edição passando o item
-      navigation.navigate("CategoriaScreenEditar", item);
+      navigation.navigate("CategoriaScreenEditar", {
+        id: item.id,
+        nome: item.Nome,
+        descricao: item.Descricao,
+      });
     } catch (error) {
       // Tratamento de erro (mensagem reaproveitada)
       if (error?.message?.includes("FOREIGN KEY constraint failed")) {
@@ -156,6 +160,7 @@ export default function CategoriaScreen() {
                   {/* Exibição dos dados da categoria */}
                   <Text style={styles.title}>ID: {item.id}</Text>
                   <Text style={styles.title}>Categoria: {item.Nome}</Text>
+                  <Text style={styles.title}>Descricao: {item.Descricao}</Text>
                 </View>
               </View>
 
