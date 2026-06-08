@@ -45,6 +45,8 @@ export default function ProdutoScreenIncluir() {
   // const categoriaRep = new CategoriaRepository();
 
   // Executa ao montar a tela
+
+  // Abre a Galeria buscando apenas imagens
   const selecionarImagem = async () => {
     const imagem = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
@@ -97,12 +99,13 @@ export default function ProdutoScreenIncluir() {
       Alert.alert("Atenção", "Selecione uma imagem");
       return;
     }
-    // Cria o produto no banco
+    // Formdata da imagem
     formData.append("image", {
       uri: image.uri,
       name: image.uri.split("/").pop(),
       type: "image/png",
     });
+
     formData.append("nome", nomeProduto);
     formData.append("idCategoria", categoriaId);
     formData.append("valor", valorProduto);
@@ -113,8 +116,6 @@ export default function ProdutoScreenIncluir() {
           "Content-Type": "multipart/form-data",
         },
       });
-
-      Alert.alert("Sucesso", "Produto cadastrado!");
       navigation.goBack();
     } catch (error) {
       console.log(error);

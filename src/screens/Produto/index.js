@@ -55,7 +55,44 @@ export default function ProdutoScreen() {
       load();
     }, []),
   );
+  async function deletarCategoria(id) {
+    // Exibe alerta de confirmação
+    Alert.alert("Confirmação", "Deseja realmente excluir este produto?", [
+      {
+        text: "Cancelar",
+        style: "cancel",
+      },
+      {
+        text: "Excluir",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            // Validação básica do ID
+            if (!id || id <= 0) {
+              Alert.alert("Atencão", "ID da categoria é inválido");
+              return;
+            }
 
+            // Executa exclusão
+            await api.delete(`/produtos/${id}`);
+
+            // Atualiza lista após exclusão
+            await loadData();
+          } catch (error) {
+            // Tratamento de erro específico de chave estrangeira
+            if (error?.message?.includes("FOREIGN KEY constraint failed")) {
+              Alert.alert(
+                "Exclusão bloqueada",
+                "Essa categoria possui produtos vinculados.",
+              );
+            } else {
+              Alert.alert("Erro", "Não foi possível excluir a categoria.");
+            }
+          }
+        },
+      },
+    ]);
+  }
   // Função para carregar todos os produtos do banco
   async function loadData() {
     try {
@@ -120,7 +157,7 @@ export default function ProdutoScreen() {
                 {/* Botão de excluir */}
                 <TouchableOpacity
                   style={[styles.iconButton]}
-                  onPress={() => handleDelete(item.id)} // Função não definida neste trecho
+                  onPress={() => deletarCategoria(item.id)} // Função não definida neste trecho
                 >
                   <Text style={styles.iconText}>🗑️ Excluir</Text>
                 </TouchableOpacity>
@@ -144,6 +181,12 @@ const styles = StyleSheet.create({
   sideBar: {
     width: 6,
     backgroundColor: "#FF9800",
+  },
+
+  conteudo: {
+    flex: 1,
+    padding: 5,
+    flexDirection: "column",
   },
 
   cardInner: {
@@ -171,21 +214,21 @@ const styles = StyleSheet.create({
     backgroundColor: "#4CAF50",
     paddingVertical: 6,
     paddingHorizontal: 12,
-    borderRadius: 20,
+    borderRadius: 25,
   },
 
   addButtonText: {
     color: "#fff",
-    fontWeight: "600",
-    fontSize: 14,
+    fontWeight: "800",
+    fontSize: 20,
   },
 
-  // Card de cada produto
+  // Card de cada item da lista
   card: {
     flexDirection: "row",
     width: "95%",
     backgroundColor: "#ffffff",
-    borderRadius: 12,
+    borderRadius: 6,
     marginTop: 12,
     marginHorizontal: 10,
     overflow: "hidden",
@@ -197,7 +240,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
 
     // Sombra Android
-    elevation: 4,
+    elevation: 2,
   },
 
   cardContent: {
@@ -209,26 +252,21 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#333",
   },
-  imageButton: {
-    width: "95%",
-    height: 80,
-    borderWidth: 2,
-    borderColor: "#4CAF50",
-    borderStyle: "dashed",
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-    backgroundColor: "#F8FFF8",
-  },
-  imageButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#4CAF50",
-  },  
+
   // Área dos botões
   actions: {
     flexDirection: "row",
-    justifyContent: "flex-end",
+  },
+
+  iconButton: {
+    flex: 1,
+    paddingVertical: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginEnd: 5,
+  },
+
+  iconText: {
+    fontWeight: "600",
   },
 });
