@@ -1,17 +1,26 @@
 // Importa a barra de status do Expo
-import { StatusBar } from 'expo-status-bar';
+import { StatusBar } from "expo-status-bar";
 
 // Hooks do React para estado, efeitos e memorização de funções
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 // Componentes básicos de interface do React Native
-import { StyleSheet, Text, View, TouchableOpacity, FlatList, Alert } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+} from "react-native";
 
 // Hooks de navegação entre telas
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 // Função para inicializar o banco de dados
-import { initDB } from '../../api/api';
+import { initDB } from "../../api/api";
+
+import api from "../../api/api";
 
 export default function ProdutoScreen() {
   // Hook para navegação
@@ -29,11 +38,11 @@ export default function ProdutoScreen() {
       const setup = async () => {
         // Carrega os dados iniciais
         await loadData();
-      }
+      };
       setup();
     } catch (error) {
       console.log(error);
-      Alert.alert('Ocorreu um erro');
+      Alert.alert("Ocorreu um erro");
     }
   }, []);
 
@@ -44,19 +53,19 @@ export default function ProdutoScreen() {
         await loadData(); // Atualiza a lista ao voltar para a tela
       }
       load();
-    }, [])
+    }, []),
   );
 
   // Função para carregar todos os produtos do banco
   async function loadData() {
-    // Linha de teste para deletar produto específico (comentada)
-    // await produtoRep.delete(1);
-
-    // const data = await produtoRep.findAll(); // Busca todos os produtos
-
-    // console.log(data); // Debug opcional
-
-    setProdutos(data); // Atualiza o estado com os produtos
+    try {
+      const response = await api.get("/produtos");
+      console.log(response.data.result);
+      setProdutos(response.data.result); // Atualiza o estado com os dados
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Ocorreu um erro", error.message);
+    }
   }
 
   // Renderização da tela
@@ -69,7 +78,10 @@ export default function ProdutoScreen() {
         <Text style={styles.titleScreen}>Gestão de produtos</Text>
 
         {/* Botão para adicionar novo produto */}
-        <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('ProdutoScreenIncluir')}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate("ProdutoScreenIncluir")}
+        >
           <Text style={styles.addButtonText}>+ Novo</Text>
         </TouchableOpacity>
       </View>
@@ -77,26 +89,26 @@ export default function ProdutoScreen() {
       {/* Lista de produtos */}
       <FlatList
         data={produtos}
-        keyExtractor={(item) => String(item.Id)} // Define chave única
+        keyExtractor={item => String(item.Id)} // Define chave única
         contentContainerStyle={{ paddingBottom: 20 }}
         renderItem={({ item }) => (
           <View style={styles.card}>
-
             {/* Barra lateral decorativa */}
             <View style={styles.sideBar} />
 
             <View style={styles.cardInner}>
               <View style={styles.cardContent}>
                 {/* Exibição dos dados do produto */}
-                <Text style={styles.title}>ID: {item.Id}</Text>
-                <Text style={styles.title}>Produto: {item.NomeProduto}</Text>
-                <Text style={styles.title}>Valor R$: {item.Valor}</Text>
-                <Text style={styles.title}>Categoria: {item.NomeCategoria}</Text>
+                <Text style={styles.title}>ID: {item.id}</Text>
+                <Text style={styles.title}>Produto: {item.nome}</Text>
+                <Text style={styles.title}>Valor R$: {item.valor}</Text>
+                <Text style={styles.title}>
+                  Categoria: {item.NomeCategoria}
+                </Text>
               </View>
 
               {/* Área de ações */}
               <View style={styles.actions}>
-
                 {/* Botão de editar */}
                 <TouchableOpacity
                   style={[styles.iconButton]}
@@ -108,13 +120,12 @@ export default function ProdutoScreen() {
                 {/* Botão de excluir */}
                 <TouchableOpacity
                   style={[styles.iconButton]}
-                  onPress={() => handleDelete(item.Id)} // Função não definida neste trecho
+                  onPress={() => handleDelete(item.id)} // Função não definida neste trecho
                 >
                   <Text style={styles.iconText}>🗑️ Excluir</Text>
                 </TouchableOpacity>
               </View>
             </View>
-
           </View>
         )}
       />
@@ -126,7 +137,7 @@ export default function ProdutoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
 
   // Barra lateral laranja decorativa
@@ -171,13 +182,13 @@ const styles = StyleSheet.create({
 
   // Card de cada produto
   card: {
-    flexDirection: 'row',
-    width: '95%',
+    flexDirection: "row",
+    width: "95%",
     backgroundColor: "#ffffff",
     borderRadius: 12,
     marginTop: 12,
     marginHorizontal: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
 
     // Sombra iOS
     shadowColor: "#000",
@@ -198,7 +209,23 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#333",
   },
-
+  imageButton: {
+    width: "95%",
+    height: 80,
+    borderWidth: 2,
+    borderColor: "#4CAF50",
+    borderStyle: "dashed",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+    backgroundColor: "#F8FFF8",
+  },
+  imageButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#4CAF50",
+  },  
   // Área dos botões
   actions: {
     flexDirection: "row",

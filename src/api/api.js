@@ -1,5 +1,5 @@
 import axios from "axios";
-const IP = '10.87.169.61'
+const IP = '10.87.169.65'
 const api = axios.create({
   baseURL: `http://${IP}:8080`,
 });

@@ -1,17 +1,24 @@
 // Importa a barra de status do Expo
-import { StatusBar } from 'expo-status-bar';
-
+import { StatusBar } from "expo-status-bar";
+import * as ImagePicker from "expo-image-picker";
 // Hook para navegação entre telas
-import { useNavigation } from '@react-navigation/native';
-
+import { useNavigation } from "@react-navigation/native";
+import api from "../../api/api";
 // Hooks de estado e ciclo de vida
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 // Componentes de interface do React Native
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 
 // Componente de seleção (dropdown)
-import { Picker } from '@react-native-picker/picker';
+import { Picker } from "@react-native-picker/picker";
 
 export default function ProdutoScreenIncluir() {
   // Hook de navegação
@@ -22,54 +29,98 @@ export default function ProdutoScreenIncluir() {
   const [valorProduto, setValorProduto] = useState(); // Valor do produto
   const [categorias, setCategorias] = useState([]); // Lista de categorias
   const [categoriaId, setCategoriaId] = useState(null); // Categoria selecionada
-
+  const [image, setImage] = useState(null);
+  async function loadDataCategorias() {
+    try {
+      const response = await api.get("/categorias");
+      console.log(response.data.result);
+      return response.data.result; // Atualiza o estado com os dados
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Ocorreu um erro", error.message);
+    }
+  }
   // Instâncias dos repositórios
   // const produtoRep = new ProdutoRepository();
   // const categoriaRep = new CategoriaRepository();
 
   // Executa ao montar a tela
+  const selecionarImagem = async () => {
+    const imagem = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+    if (!imagem.canceled) {
+      setImage(imagem.assets[0]); // Deixa a imagem nula
+    }
+  };
+
   useEffect(() => {
     try {
       const setup = async () => {
         // Busca todas as categorias do banco
-        // const result = await categoriaRep.findAll();
+        const result = await loadDataCategorias();
 
         // Armazena no estado
         setCategorias(result);
-      }
+      };
       setup();
     } catch (error) {
       console.log(error);
-      Alert.alert('Ocorreu um erro');
+      Alert.alert("Ocorreu um erro");
     }
   }, []);
 
   // Função responsável por salvar o produto
-  function salvar() {
-
+  async function salvar() {
+    const formData = new FormData();
     // Validação do nome
     if (!nomeProduto || nomeProduto.trim().length < 3) {
-      Alert.alert('Atencão', 'Informe corretamente o nome do produto');
-      return
+      Alert.alert("Atencão", "Informe corretamente o nome do produto");
+      return;
     }
 
     // Validação da categoria
     if (!categoriaId) {
-      Alert.alert('Atenção', 'Selecione uma categoria');
-      return
+      Alert.alert("Atenção", "Selecione uma categoria");
+      return;
     }
 
     // Validação do valor
     if (!valorProduto || valorProduto <= 0) {
-      Alert.alert('Atenção', 'Informe um valor');
+      Alert.alert("Atenção", "Informe um valor");
       return;
     }
-
+    if (!image) {
+      Alert.alert("Atenção", "Selecione uma imagem");
+      return;
+    }
     // Cria o produto no banco
-    // produtoRep.create(categoriaId, nomeProduto, valorProduto);
+    formData.append("image", {
+      uri: image.uri,
+      name: image.uri.split("/").pop(),
+      type: "image/png",
+    });
+    formData.append("nome", nomeProduto);
+    formData.append("idCategoria", categoriaId);
+    formData.append("valor", valorProduto);
 
+    try {
+      await api.post("/produtos", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      Alert.alert("Sucesso", "Produto cadastrado!");
+      navigation.goBack();
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Erro", "Não foi possível cadastrar o produto");
+    }
     // Volta para a tela anterior
-    navigation.goBack();
   }
 
   return (
@@ -91,41 +142,37 @@ export default function ProdutoScreenIncluir() {
         value={valorProduto}
         style={styles.input}
         keyboardType="numeric"
-        onChangeText={(text) => {
-
+        onChangeText={text => {
           // Remove tudo que não for número ou ponto decimal
-          const cleaned = text.replace(/[^0-9.]/g, '');
+          const cleaned = text.replace(/[^0-9.]/g, "");
 
           // Evita mais de um ponto decimal (ex: 10.5.3)
-          const parts = cleaned.split('.');
+          const parts = cleaned.split(".");
           if (parts.length > 2) return;
 
           // Atualiza o estado com valor válido
           setValorProduto(cleaned);
         }}
       />
-
+      <TouchableOpacity style={styles.button} onPress={selecionarImagem}>
+        <Text>Imagem</Text>
+      </TouchableOpacity>
       {/* Container do seletor de categoria */}
       <View style={styles.pickerContainer}>
         <Picker
           selectedValue={categoriaId}
-          onValueChange={(itemValue) => setCategoriaId(itemValue)}
+          onValueChange={itemValue => setCategoriaId(itemValue)}
           style={styles.picker}
         >
           {/* Opção padrão */}
-          <Picker.Item label='Selecione uma categoria' value={null} />
+          <Picker.Item label="Selecione uma categoria" value={null} />
 
           {/* Lista dinâmica de categorias */}
-          {categorias.map((cat) => (
-            <Picker.Item
-              key={cat.Id}
-              label={cat.NomeCategoria}
-              value={cat.Id}
-            />
+          {categorias.map(cat => (
+            <Picker.Item key={cat.id} label={cat.Nome} value={cat.id} />
           ))}
         </Picker>
       </View>
-
       {/* Botão de cancelar */}
       <TouchableOpacity
         style={[styles.button, styles.cancelButton]}
@@ -139,9 +186,8 @@ export default function ProdutoScreenIncluir() {
         style={[styles.button, styles.saveButton]}
         onPress={salvar}
       >
-        <Text style={[styles.textButton, { color: '#fff' }]}>Salvar</Text>
+        <Text style={[styles.textButton, { color: "#fff" }]}>Salvar</Text>
       </TouchableOpacity>
-
     </View>
   );
 }
@@ -150,8 +196,8 @@ export default function ProdutoScreenIncluir() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
+    backgroundColor: "#fff",
+    alignItems: "center",
   },
 
   // Título da tela
@@ -159,9 +205,26 @@ const styles = StyleSheet.create({
     marginTop: 25,
     marginBottom: 25,
     fontSize: 16,
-    fontWeight: 'bold'
+    fontWeight: "bold",
+  },
+  imageButton: {
+    width: "95%",
+    height: 80,
+    borderWidth: 2,
+    borderColor: "#4CAF50",
+    borderStyle: "dashed",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+    backgroundColor: "#F8FFF8",
   },
 
+  imageButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#4CAF50",
+  },
   // Estilo dos inputs
   input: {
     borderWidth: 1,
@@ -169,8 +232,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     marginBottom: 16,
-    width: '95%',
-    height: 50
+    width: "95%",
+    height: 50,
   },
 
   // Área de ações (não usada diretamente aqui)
@@ -185,11 +248,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 8,
     marginLeft: 8,
-    width: '95%',
+    width: "95%",
     height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 10,
   },
 
   // Botão cancelar
@@ -204,16 +267,15 @@ const styles = StyleSheet.create({
 
   // Container do Picker (dropdown)
   pickerContainer: {
-    width: '95%',
+    width: "95%",
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 12,
     marginBottom: 16,
   },
 
   // Texto dos botões
   textButton: {
-    fontSize: 16
-  }
-
+    fontSize: 16,
+  },
 });
