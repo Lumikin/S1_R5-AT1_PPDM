@@ -40,12 +40,7 @@ export default function ProdutoScreenIncluir() {
       Alert.alert("Ocorreu um erro", error.message);
     }
   }
-  // Instâncias dos repositórios
-  // const produtoRep = new ProdutoRepository();
-  // const categoriaRep = new CategoriaRepository();
-
-  // Executa ao montar a tela
-
+  
   // Abre a Galeria buscando apenas imagens
   const selecionarImagem = async () => {
     const imagem = await ImagePicker.launchImageLibraryAsync({

@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   FlatList,
   Alert,
+  Image,
 } from "react-native";
 
 // Hooks de navegação entre telas
@@ -21,6 +22,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { initDB } from "../../api/api";
 
 import api from "../../api/api";
+const server = "10.87.169.52";
 
 export default function ProdutoScreen() {
   // Hook para navegação
@@ -111,6 +113,7 @@ export default function ProdutoScreen() {
       },
     ]);
   }
+
   // Função para carregar todos os produtos do banco
   async function loadData() {
     try {
@@ -192,7 +195,7 @@ export default function ProdutoScreen() {
               <View style={styles.actions}>
                 {/* Botão de editar */}
                 <TouchableOpacity
-                  style={[styles.iconButton]}
+                  style={styles.iconButton}
                   onPress={() => editarProduto(item)} // Função não definida neste trecho
                 >
                   <Text style={styles.iconText}>✏️ Editar</Text>
